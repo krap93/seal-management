@@ -120,7 +120,6 @@
 
         .date-input-group input { text-align: center; }
 
-        /* Status boxes */
         .status-container {
             display: flex;
             gap: 15px;
@@ -158,7 +157,6 @@
         .rental .seal-tag { background: #fff; border-color: #ff7875; color: #cf1322; }
         .available .seal-tag { background: #fff; border-color: #95de64; color: #389e0d; }
 
-        /* Admin lock */
         .admin-lock-area {
             text-align: center;
             padding: 15px;
@@ -190,7 +188,6 @@
 
         .admin-lock-area button:hover { background: #5a6268; }
 
-        /* Admin section */
         #adminSection {
             display: none;
             border-top: 4px solid var(--green);
@@ -237,7 +234,6 @@
 
         .btn-logout:hover { background: #5a6268; }
 
-        /* Table */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -295,7 +291,6 @@
 
         .btn-return:hover { background: #218838; }
 
-        /* Modals */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -329,7 +324,6 @@
 
         .modal button { margin-top: 5px; }
 
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -353,7 +347,6 @@
         .toast.error   { background: #dc3545; }
         .toast.info    { background: #1a73e8; }
 
-        /* Confirm modal */
         #confirmModal p {
             margin-bottom: 20px;
             font-size: 15px;
@@ -374,7 +367,6 @@
 
 <div class="container">
 
-    <!-- 기록 작성 카드 -->
     <div class="card">
         <h2>✍️ 인감 사용 기록 작성</h2>
 
@@ -430,7 +422,6 @@
             <button type="submit">기록 저장</button>
         </form>
 
-        <!-- 인감 상태 -->
         <div class="status-container">
             <div class="status-box rental">
                 <h3>🔴 대여 중인 인감</h3>
@@ -442,7 +433,6 @@
             </div>
         </div>
 
-        <!-- 관리자 잠금 -->
         <div class="admin-lock-area" id="lockArea">
             <span>관리 모드:</span>
             <input type="password" id="pwField" placeholder="암호 입력"
@@ -451,7 +441,6 @@
         </div>
     </div>
 
-    <!-- 관리 대장 -->
     <div id="adminSection" class="card">
         <div class="admin-top-bar">
             <h2 style="color:#34a853; margin:0;">📊 실시간 관리 대장</h2>
@@ -480,13 +469,9 @@
 
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toastEl"></div>
-
-<!-- Overlay -->
 <div class="modal-overlay" id="overlay" onclick="closeOverlay()"></div>
 
-<!-- 초기 비밀번호 설정 모달 -->
 <div class="modal" id="initPwModal">
     <h3>🔐 관리자 암호 설정</h3>
     <input type="password" id="newInitPw" placeholder="새 암호 입력 (4자리 이상)"
@@ -494,7 +479,6 @@
     <button onclick="setInitialPw()">설정 완료</button>
 </div>
 
-<!-- 비밀번호 변경 모달 -->
 <div class="modal" id="pwChangeModal">
     <h3>🔑 비밀번호 변경</h3>
     <input type="password" id="currentPw" placeholder="현재 비밀번호">
@@ -504,7 +488,6 @@
         style="background:#ccc; color:#333; margin-top:5px;">취소</button>
 </div>
 
-<!-- 확인 모달 -->
 <div class="modal" id="confirmModal">
     <h3 id="confirmMsg"></h3>
     <button id="confirmOkBtn">확인</button>
@@ -514,10 +497,8 @@
 
 <script>
     const ALL_SEALS = ["6번", "7번", "8번", "9번", "10번"];
-    // [중요!] 구글 웹 앱 URL을 여기에 넣어주세요
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyOGG8l5oJ1bATQQt07XLmrToMH7Nc389cP7HSGgubZ8F2foiYc_Mr-UIYkUAdiOzaODg/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwA5ZKh2185_k8YoEPzg3hzaG4uCVjmgiQprDyiQJ0trmPYojPGKpcm_mBN3EyhQHbZWQ/exec';
 
-    // ─── 초기화 ───────────────────────────────────────
     window.onload = function() {
         updateSealOptions();
         syncSealStatus();
@@ -533,7 +514,6 @@
             .catch(() => {});
     }
 
-    // ─── 토스트 알림 ──────────────────────────────────
     function showToast(msg, type) {
         const el = document.getElementById('toastEl');
         el.textContent = msg;
@@ -542,7 +522,6 @@
         el._t = setTimeout(function() { el.className = 'toast'; }, 3000);
     }
 
-    // ─── 확인 모달 ────────────────────────────────────
     function showConfirm(msg, onOk) {
         document.getElementById('confirmMsg').textContent = msg;
         document.getElementById('confirmOkBtn').onclick = function() {
@@ -558,7 +537,6 @@
         document.getElementById('overlay').style.display = 'none';
     }
 
-    // ─── 유틸 ─────────────────────────────────────────
     function nowString() {
         const n = new Date();
         return n.getFullYear() + "-"
@@ -583,7 +561,6 @@
         return day >= 1 && day <= last;
     }
 
-    // 날짜 입력 자동 포커스
     function handleInput(current, maxLen, nextId) {
         if (current.value.length > maxLen) current.value = current.value.slice(0, maxLen);
         if (current.value.length === maxLen) {
@@ -592,7 +569,6 @@
         }
     }
 
-    // ─── 인감 상태 ────────────────────────────────────
     function getRentingSeals() {
         const list = JSON.parse(localStorage.getItem('seals') || '[]');
         const status = {};
@@ -631,7 +607,6 @@
             : '<span style="color:#999; font-size:12px;">없음</span>';
     }
 
-    // ─── 폼 제출 ──────────────────────────────────────
     document.getElementById('sealForm').onsubmit = function(e) {
         e.preventDefault();
         const y = document.getElementById('year').value;
@@ -680,7 +655,6 @@
         });
     };
 
-    // ─── 관리자 로그인 ────────────────────────────────
     function unlockAdmin() {
         const input = document.getElementById('pwField').value.trim();
         if (!input) { showToast('암호를 입력해주세요.', 'error'); return; }
@@ -713,7 +687,6 @@
         document.getElementById('pwField').value = '';
     }
 
-    // ─── 데이터 불러오기 ──────────────────────────────
     function fetchAdminData() {
         const body = document.getElementById('listBody');
         body.innerHTML = '<tr><td colspan="8">데이터를 불러오는 중...</td></tr>';
@@ -758,7 +731,6 @@
         }).join('') || '<tr><td colspan="8">데이터가 없습니다.</td></tr>';
     }
 
-    // ─── 반납 ─────────────────────────────────────────
     function quickReturn(sealNo) {
         showConfirm(sealNo + ' 인감을 즉시 반납 처리하시겠습니까?', function() {
             const data = {
@@ -788,7 +760,6 @@
         });
     }
 
-    // ─── 삭제 ─────────────────────────────────────────
     function deleteItem(id, createdTime, btnEl) {
         showConfirm('삭제하시겠습니까?\n(구글 시트에서도 삭제됩니다.)', function() {
             if (btnEl) { btnEl.disabled = true; btnEl.innerText = '삭제 중...'; }
@@ -815,7 +786,6 @@
         });
     }
 
-    // ─── CSV 내보내기 ─────────────────────────────────
     function exportCSV() {
         const list = JSON.parse(localStorage.getItem('seals') || '[]');
         let csv = "﻿No,날짜,성함,구분,인감번호,사용목적,등록시간\n";
@@ -829,7 +799,6 @@
         a.click();
     }
 
-    // ─── 모달 ─────────────────────────────────────────
     function showModal(id) {
         document.getElementById(id).style.display = 'block';
         document.getElementById('overlay').style.display = 'block';
