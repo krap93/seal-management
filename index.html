@@ -656,10 +656,13 @@
         btn.disabled = true;
         btn.innerText = "전송 중...";
 
-        fetch(scriptURL, {
-            method: 'POST',
-            body: JSON.stringify(data)
-        }).then(res => res.json())
+        const params = new URLSearchParams({
+            action: 'saveRecord',
+            date: data.date, name: data.name, type: data.type,
+            seal: data.seal, purpose: data.purpose, createdTime: data.createdTime
+        });
+        fetch(scriptURL + '?' + params.toString())
+        .then(res => res.json())
         .then(() => {
             showToast('기록이 구글 시트에 저장되었습니다!', 'success');
             const list = JSON.parse(localStorage.getItem('seals') || '[]');
@@ -763,7 +766,13 @@
                 purpose: '관리자 페이지 직권 반납',
                 createdTime: nowString()
             };
-            fetch(scriptURL, { method: 'POST', body: JSON.stringify(data) })
+            const params = new URLSearchParams({
+                action: 'saveRecord',
+                date: data.date, name: data.name, type: data.type,
+                seal: data.seal, purpose: data.purpose, createdTime: data.createdTime
+            });
+            fetch(scriptURL + '?' + params.toString())
+                .then(res => res.json())
                 .then(() => {
                     const list = JSON.parse(localStorage.getItem('seals') || '[]');
                     list.unshift({ ...data, id: Date.now() });
@@ -771,7 +780,8 @@
                     showToast(sealNo + ' 반납 처리 완료', 'success');
                     loadData();
                     updateSealOptions();
-                });
+                })
+                .catch(() => showToast('연결 오류가 발생했습니다.', 'error'));
         });
     }
 
