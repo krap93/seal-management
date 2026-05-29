@@ -515,7 +515,7 @@
 <script>
     const ALL_SEALS = ["6번", "7번", "8번", "9번", "10번"];
     // [중요!] 구글 웹 앱 URL을 여기에 넣어주세요
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwmD8C4GLYTXz1AA5OFQuaiPZF5p4VMqjOUfPQV3cok3MEVAoAXz5Cw9Ja0ZfH1_bJn/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyOGG8l5oJ1bATQQt07XLmrToMH7Nc389cP7HSGgubZ8F2foiYc_Mr-UIYkUAdiOzaODg/exec';
 
     // ─── 초기화 ───────────────────────────────────────
     window.onload = function() {
@@ -597,6 +597,7 @@
         const list = JSON.parse(localStorage.getItem('seals') || '[]');
         const status = {};
         [...list].reverse().forEach(item => {
+            if (item.status === '삭제') return;
             if (item.type === '대여') status[item.seal] = true;
             if (item.type === '반납') status[item.seal] = false;
         });
@@ -735,9 +736,10 @@
         const renting = getRentingSeals();
 
         document.getElementById('listBody').innerHTML = list.map((item, idx) => {
-            const isCurrentlyRented = item.type === '대여' && renting.includes(item.seal);
+            const isDeleted = item.status === '삭제';
+            const isCurrentlyRented = !isDeleted && item.type === '대여' && renting.includes(item.seal);
             return `
-                <tr>
+                <tr style="${isDeleted ? 'opacity:0.4;' : ''}">
                     <td>${total - idx}</td>
                     <td>${item.date}</td>
                     <td>${item.name}</td>
@@ -746,10 +748,11 @@
                     <td style="text-align:left;">${item.purpose}</td>
                     <td style="font-size:11px; color:#666;">${item.createdTime || '-'}</td>
                     <td>
-                        ${isCurrentlyRented
-                            ? `<button class="btn-return" onclick="quickReturn('${item.seal}')">반납</button>`
-                            : ''}
-                        <button class="btn-del" onclick="deleteItem(${item.id}, '${item.createdTime}', this)">삭제</button>
+                        ${isDeleted
+                            ? `<span style="font-size:11px; color:#aaa;">삭제됨<br>${item.deletedTime || ''}</span>`
+                            : (isCurrentlyRented ? `<button class="btn-return" onclick="quickReturn('${item.seal}')">반납</button>` : '') +
+                              `<button class="btn-del" onclick="deleteItem(${item.id}, '${item.createdTime}', this)">삭제</button>`
+                        }
                     </td>
                 </tr>`;
         }).join('') || '<tr><td colspan="8">데이터가 없습니다.</td></tr>';
@@ -793,12 +796,13 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.result === 'success') {
+                        const now = nowString();
                         let list = JSON.parse(localStorage.getItem('seals') || '[]');
-                        list = list.filter(i => i.id !== id);
+                        list = list.map(i => i.id === id ? { ...i, status: '삭제', deletedTime: now } : i);
                         localStorage.setItem('seals', JSON.stringify(list));
                         loadData();
                         updateSealOptions();
-                        showToast('삭제되었습니다.', 'success');
+                        showToast('삭제 처리되었습니다.', 'success');
                     } else {
                         if (btnEl) { btnEl.disabled = false; btnEl.innerText = '삭제'; }
                         showToast('삭제 실패. 다시 시도해주세요.', 'error');
