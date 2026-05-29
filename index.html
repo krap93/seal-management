@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사용인감 스마트 관리대장</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --blue: #1a73e8;
+            --blue-dark: #1557b0;
+            --green: #34a853;
+            --red: #dc3545;
+            --green-btn: #28a745;
+            --yellow: #ffc107;
+            --gray: #6c757d;
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --border: #dee2e6;
+            --text: #333;
+            --muted: #555;
+            --hint: #888;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            background: var(--bg);
+            padding: 20px;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        .container { max-width: 1050px; margin: auto; }
+
+        .card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        h2 {
+            color: var(--blue);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+        }
+
+        .form-group { margin-bottom: 15px; }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            color: var(--text);
+            background: #fff;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--blue);
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+        textarea { resize: vertical; }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: inherit;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover { background: var(--blue-dark); }
+        button:active { transform: scale(0.99); }
+
+        .row { display: flex; gap: 15px; }
+        .row > .form-group { flex: 1; }
+        .row > .form-group.wide { flex: 1.5; }
+
+        .date-input-group {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .date-input-group span {
+            font-weight: bold;
+            color: var(--hint);
+            flex-shrink: 0;
+        }
+
+        .date-input-group input { text-align: center; }
+
+        /* Status boxes */
+        .status-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .status-box {
+            flex: 1;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .status-box.rental { background: #fff4f4; border-color: #ffcccc; }
+        .status-box.available { background: #f6ffed; border-color: #b7eb8f; }
+
+        .status-box h3 {
+            margin-top: 0;
+            font-size: 14px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            padding-bottom: 5px;
+        }
+
+        .seal-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 15px;
+            margin: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            border: 1px solid;
+        }
+
+        .rental .seal-tag { background: #fff; border-color: #ff7875; color: #cf1322; }
+        .available .seal-tag { background: #fff; border-color: #95de64; color: #389e0d; }
+
+        /* Admin lock */
+        .admin-lock-area {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px dashed #ccc;
+        }
+
+        .admin-lock-area span { font-size: 13px; color: #777; }
+
+        .admin-lock-area input {
+            width: 180px;
+            display: inline-block;
+            margin: 0 8px 0 8px;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .admin-lock-area button {
+            width: auto;
+            display: inline-block;
+            padding: 8px 15px;
+            background: var(--gray);
+            font-size: 13px;
+        }
+
+        .admin-lock-area button:hover { background: #5a6268; }
+
+        /* Admin section */
+        #adminSection {
+            display: none;
+            border-top: 4px solid var(--green);
+            padding-top: 20px;
+            margin-top: 0;
+        }
+
+        .admin-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .admin-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .btn-excel {
+            width: auto;
+            background: var(--green);
+            font-size: 13px;
+            padding: 10px 15px;
+        }
+
+        .btn-excel:hover { background: #2d9248; }
+
+        .btn-pw-edit {
+            width: auto;
+            background: var(--yellow);
+            color: #000;
+            font-size: 13px;
+            padding: 10px 15px;
+        }
+
+        .btn-pw-edit:hover { background: #e0a800; }
+
+        .btn-logout {
+            width: auto;
+            background: var(--gray);
+            font-size: 13px;
+            padding: 10px 15px;
+        }
+
+        .btn-logout:hover { background: #5a6268; }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+            background: #fff;
+            table-layout: fixed;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: 10px;
+            text-align: center;
+            font-size: 13px;
+            word-break: break-all;
+        }
+
+        th { background: #f8f9fa; font-weight: bold; }
+
+        tr:hover td { background: #f9f9f9; }
+
+        .col-no    { width: 40px; }
+        .col-date  { width: 90px; }
+        .col-name  { width: 80px; }
+        .col-type  { width: 60px; }
+        .col-seal  { width: 60px; }
+        .col-purpose { }
+        .col-time  { width: 130px; }
+        .col-manage { width: 110px; }
+
+        .btn-del {
+            background: var(--red);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 2px;
+            font-size: 12px;
+            font-family: inherit;
+        }
+
+        .btn-del:hover { background: #c82333; }
+
+        .btn-return {
+            background: var(--green-btn);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 2px;
+            font-size: 12px;
+            font-family: inherit;
+        }
+
+        .btn-return:hover { background: #218838; }
+
+        /* Modals */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+            z-index: 1000;
+            width: 320px;
+        }
+
+        .modal h3 { margin-bottom: 15px; font-size: 16px; color: var(--text); }
+
+        .modal input {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+        }
+
+        .modal button { margin-top: 5px; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            max-width: 90vw;
+            text-align: center;
+            white-space: pre-line;
+        }
+        .toast.show { opacity: 1; }
+        .toast.success { background: #34a853; }
+        .toast.error   { background: #dc3545; }
+        .toast.info    { background: #1a73e8; }
+
+        /* Confirm modal */
+        #confirmModal p {
+            margin-bottom: 20px;
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        @media (max-width: 600px) {
+            .row { flex-direction: column; }
+            .status-container { flex-direction: column; }
+            .admin-top-bar { flex-direction: column; }
+            .admin-buttons { width: 100%; }
+            .admin-buttons button { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- 기록 작성 카드 -->
+    <div class="card">
+        <h2>✍️ 인감 사용 기록 작성</h2>
+
+        <form id="sealForm">
+            <div class="row">
+                <div class="form-group wide">
+                    <label>날짜</label>
+                    <div class="date-input-group">
+                        <input type="number" id="year" placeholder="YYYY"
+                            oninput="handleInput(this, 4, 'month')" required>
+                        <span>-</span>
+                        <input type="number" id="month" placeholder="MM"
+                            oninput="handleInput(this, 2, 'day')" required>
+                        <span>-</span>
+                        <input type="number" id="day" placeholder="DD"
+                            oninput="handleInput(this, 2, 'userName')" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>사용자 성함</label>
+                    <input type="text" id="userName" placeholder="성함 입력" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label>구분</label>
+                    <select id="useType" required onchange="updateSealOptions()">
+                        <option value="">선택</option>
+                        <option>날인</option>
+                        <option>대여</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>인감 번호</label>
+                    <select id="sealNo" required>
+                        <option value="">선택</option>
+                        <option>6번</option>
+                        <option>7번</option>
+                        <option>8번</option>
+                        <option>9번</option>
+                        <option>10번</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>사용 목적 및 제출처</label>
+                <textarea id="purpose" rows="2"
+                    placeholder="상세 내용을 기재해 주세요" required></textarea>
+            </div>
+
+            <button type="submit">기록 저장</button>
+        </form>
+
+        <!-- 인감 상태 -->
+        <div class="status-container">
+            <div class="status-box rental">
+                <h3>🔴 대여 중인 인감</h3>
+                <div id="rentalList"></div>
+            </div>
+            <div class="status-box available">
+                <h3>🟢 사용 가능한 인감</h3>
+                <div id="availableList"></div>
+            </div>
+        </div>
+
+        <!-- 관리자 잠금 -->
+        <div class="admin-lock-area" id="lockArea">
+            <span>관리 모드:</span>
+            <input type="password" id="pwField" placeholder="암호 입력"
+                onkeydown="if(event.key==='Enter') unlockAdmin()">
+            <button onclick="unlockAdmin()">로그인</button>
+        </div>
+    </div>
+
+    <!-- 관리 대장 -->
+    <div id="adminSection" class="card">
+        <div class="admin-top-bar">
+            <h2 style="color:#34a853; margin:0;">📊 실시간 관리 대장</h2>
+            <div class="admin-buttons">
+                <button class="btn-pw-edit" onclick="openPwModal()">비밀번호 변경</button>
+                <button class="btn-excel" onclick="exportCSV()">Excel 저장</button>
+                <button class="btn-logout" onclick="logoutAdmin()">로그아웃</button>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-no">No</th>
+                    <th class="col-date">날짜</th>
+                    <th class="col-name">성함</th>
+                    <th class="col-type">구분</th>
+                    <th class="col-seal">인감</th>
+                    <th class="col-purpose">목적</th>
+                    <th class="col-time">등록시간</th>
+                    <th class="col-manage">관리</th>
+                </tr>
+            </thead>
+            <tbody id="listBody"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toastEl"></div>
+
+<!-- Overlay -->
+<div class="modal-overlay" id="overlay" onclick="closeOverlay()"></div>
+
+<!-- 초기 비밀번호 설정 모달 -->
+<div class="modal" id="initPwModal">
+    <h3>🔐 관리자 암호 설정</h3>
+    <input type="password" id="newInitPw" placeholder="새 암호 입력 (4자리 이상)"
+        onkeydown="if(event.key==='Enter') setInitialPw()">
+    <button onclick="setInitialPw()">설정 완료</button>
+</div>
+
+<!-- 비밀번호 변경 모달 -->
+<div class="modal" id="pwChangeModal">
+    <h3>🔑 비밀번호 변경</h3>
+    <input type="password" id="currentPw" placeholder="현재 비밀번호">
+    <input type="password" id="newPw" placeholder="새 비밀번호">
+    <button onclick="changePassword()">변경하기</button>
+    <button onclick="closePwModal()"
+        style="background:#ccc; color:#333; margin-top:5px;">취소</button>
+</div>
+
+<!-- 확인 모달 -->
+<div class="modal" id="confirmModal">
+    <h3 id="confirmMsg"></h3>
+    <button id="confirmOkBtn">확인</button>
+    <button id="confirmCancelBtn"
+        style="background:#ccc; color:#333; margin-top:5px;">취소</button>
+</div>
+
+<script>
+    const ALL_SEALS = ["6번", "7번", "8번", "9번", "10번"];
+    // [중요!] 구글 웹 앱 URL을 여기에 넣어주세요
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbylko55-OmQU9LKMHB4pxJ-AdT1bmwi9OGfTC792b1DGKSI92nCjW2zhw3H93GzbwV9KQ/exec';
+
+    // ─── 초기화 ───────────────────────────────────────
+    window.onload = function() {
+        updateSealOptions();
+        syncSealStatus();
+    };
+
+    function syncSealStatus() {
+        fetch(scriptURL + '?action=getData')
+            .then(res => res.json())
+            .then(data => {
+                localStorage.setItem('seals', JSON.stringify(data.reverse()));
+                updateSealOptions();
+            })
+            .catch(() => {});
+    }
+
+    // ─── 토스트 알림 ──────────────────────────────────
+    function showToast(msg, type) {
+        const el = document.getElementById('toastEl');
+        el.textContent = msg;
+        el.className = 'toast show ' + (type || 'info');
+        clearTimeout(el._t);
+        el._t = setTimeout(function() { el.className = 'toast'; }, 3000);
+    }
+
+    // ─── 확인 모달 ────────────────────────────────────
+    function showConfirm(msg, onOk) {
+        document.getElementById('confirmMsg').textContent = msg;
+        document.getElementById('confirmOkBtn').onclick = function() {
+            closeConfirm();
+            onOk();
+        };
+        document.getElementById('confirmCancelBtn').onclick = closeConfirm;
+        showModal('confirmModal');
+    }
+
+    function closeConfirm() {
+        hideModal('confirmModal');
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    // ─── 유틸 ─────────────────────────────────────────
+    function nowString() {
+        const n = new Date();
+        return n.getFullYear() + "-"
+            + String(n.getMonth() + 1).padStart(2, '0') + "-"
+            + String(n.getDate()).padStart(2, '0') + " "
+            + String(n.getHours()).padStart(2, '0') + ":"
+            + String(n.getMinutes()).padStart(2, '0') + ":"
+            + String(n.getSeconds()).padStart(2, '0');
+    }
+
+    function todayString() {
+        const n = new Date();
+        return n.getFullYear() + "-"
+            + String(n.getMonth() + 1).padStart(2, '0') + "-"
+            + String(n.getDate()).padStart(2, '0');
+    }
+
+    function isValidDate(y, m, d) {
+        const year = parseInt(y), month = parseInt(m), day = parseInt(d);
+        if (month < 1 || month > 12) return false;
+        const last = new Date(year, month, 0).getDate();
+        return day >= 1 && day <= last;
+    }
+
+    // 날짜 입력 자동 포커스
+    function handleInput(current, maxLen, nextId) {
+        if (current.value.length > maxLen) current.value = current.value.slice(0, maxLen);
+        if (current.value.length === maxLen) {
+            const next = document.getElementById(nextId);
+            if (next) next.focus();
+        }
+    }
+
+    // ─── 인감 상태 ────────────────────────────────────
+    function getRentingSeals() {
+        const list = JSON.parse(localStorage.getItem('seals') || '[]');
+        const status = {};
+        [...list].reverse().forEach(item => {
+            if (item.type === '대여') status[item.seal] = true;
+            if (item.type === '반납') status[item.seal] = false;
+        });
+        return Object.keys(status).filter(s => status[s]);
+    }
+
+    function updateSealOptions() {
+        const renting = getRentingSeals();
+        const sealSelect = document.getElementById('sealNo');
+        const useType = document.getElementById('useType').value;
+
+        sealSelect.innerHTML = '<option value="">선택</option>';
+        ALL_SEALS.forEach(val => {
+            const isRenting = renting.includes(val);
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.text = isRenting ? val + " (대여중)" : val;
+            if (isRenting && (useType === '날인' || useType === '대여')) {
+                opt.disabled = true;
+            }
+            sealSelect.add(opt);
+        });
+
+        document.getElementById('rentalList').innerHTML = renting.length > 0
+            ? renting.map(s => `<span class="seal-tag">${s}</span>`).join('')
+            : '<span style="color:#999; font-size:12px;">없음</span>';
+
+        const available = ALL_SEALS.filter(s => !renting.includes(s));
+        document.getElementById('availableList').innerHTML = available.length > 0
+            ? available.map(s => `<span class="seal-tag">${s}</span>`).join('')
+            : '<span style="color:#999; font-size:12px;">없음</span>';
+    }
+
+    // ─── 폼 제출 ──────────────────────────────────────
+    document.getElementById('sealForm').onsubmit = function(e) {
+        e.preventDefault();
+        const y = document.getElementById('year').value;
+        const m = document.getElementById('month').value;
+        const d = document.getElementById('day').value;
+
+        if (!isValidDate(y, m, d)) {
+            showToast('존재하지 않는 날짜입니다. 정확한 날짜를 입력해 주세요.', 'error');
+            document.getElementById('day').focus();
+            return;
+        }
+
+        const data = {
+            date: `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`,
+            name: document.getElementById('userName').value.trim(),
+            type: document.getElementById('useType').value,
+            seal: document.getElementById('sealNo').value,
+            purpose: document.getElementById('purpose').value.trim(),
+            createdTime: nowString()
+        };
+
+        const btn = e.target.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.innerText = "전송 중...";
+
+        fetch(scriptURL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify(data)
+        }).then(() => {
+            showToast('기록이 구글 시트에 저장되었습니다!', 'success');
+            const list = JSON.parse(localStorage.getItem('seals') || '[]');
+            list.unshift({ ...data, id: Date.now() });
+            localStorage.setItem('seals', JSON.stringify(list));
+            this.reset();
+            updateSealOptions();
+            if (document.getElementById('adminSection').style.display === 'block') loadData();
+        }).catch(() => {
+            showToast('연결 오류가 발생했습니다.', 'error');
+        }).finally(() => {
+            btn.disabled = false;
+            btn.innerText = "기록 저장";
+        });
+    };
+
+    // ─── 관리자 로그인 ────────────────────────────────
+    function unlockAdmin() {
+        const input = document.getElementById('pwField').value.trim();
+        if (!input) { showToast('암호를 입력해주세요.', 'error'); return; }
+        const btn = document.querySelector('#lockArea button');
+        btn.disabled = true;
+        btn.innerText = '확인 중...';
+        fetch(scriptURL + '?action=checkPw&pw=' + encodeURIComponent(input))
+            .then(res => res.json())
+            .then(data => {
+                if (data.result === 'noPw') {
+                    showModal('initPwModal');
+                } else if (data.result === 'ok') {
+                    document.getElementById('adminSection').style.display = 'block';
+                    document.getElementById('lockArea').style.display = 'none';
+                    fetchAdminData();
+                } else {
+                    showToast('암호가 틀립니다.', 'error');
+                }
+            })
+            .catch(() => showToast('연결 오류가 발생했습니다.', 'error'))
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerText = '로그인';
+            });
+    }
+
+    function logoutAdmin() {
+        document.getElementById('adminSection').style.display = 'none';
+        document.getElementById('lockArea').style.display = 'block';
+        document.getElementById('pwField').value = '';
+    }
+
+    // ─── 데이터 불러오기 ──────────────────────────────
+    function fetchAdminData() {
+        const body = document.getElementById('listBody');
+        body.innerHTML = '<tr><td colspan="8">데이터를 불러오는 중...</td></tr>';
+        fetch(scriptURL + '?action=getData')
+            .then(res => res.json())
+            .then(data => {
+                localStorage.setItem('seals', JSON.stringify(data.reverse()));
+                loadData();
+                updateSealOptions();
+            })
+            .catch(() => {
+                showToast('데이터 로드 실패. 로컬 데이터를 표시합니다.', 'error');
+                loadData();
+            });
+    }
+
+    function loadData() {
+        const list = JSON.parse(localStorage.getItem('seals') || '[]');
+        const total = list.length;
+        const renting = getRentingSeals();
+
+        document.getElementById('listBody').innerHTML = list.map((item, idx) => {
+            const isCurrentlyRented = item.type === '대여' && renting.includes(item.seal);
+            return `
+                <tr>
+                    <td>${total - idx}</td>
+                    <td>${item.date}</td>
+                    <td>${item.name}</td>
+                    <td>${item.type}</td>
+                    <td><b>${item.seal}</b></td>
+                    <td style="text-align:left;">${item.purpose}</td>
+                    <td style="font-size:11px; color:#666;">${item.createdTime || '-'}</td>
+                    <td>
+                        ${isCurrentlyRented
+                            ? `<button class="btn-return" onclick="quickReturn('${item.seal}')">반납</button>`
+                            : ''}
+                        <button class="btn-del" onclick="deleteItem(${item.id}, '${item.createdTime}', this)">삭제</button>
+                    </td>
+                </tr>`;
+        }).join('') || '<tr><td colspan="8">데이터가 없습니다.</td></tr>';
+    }
+
+    // ─── 반납 ─────────────────────────────────────────
+    function quickReturn(sealNo) {
+        showConfirm(sealNo + ' 인감을 즉시 반납 처리하시겠습니까?', function() {
+            const data = {
+                date: todayString(),
+                name: '관리자(직권)',
+                type: '반납',
+                seal: sealNo,
+                purpose: '관리자 페이지 직권 반납',
+                createdTime: nowString()
+            };
+            fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) })
+                .then(() => {
+                    const list = JSON.parse(localStorage.getItem('seals') || '[]');
+                    list.unshift({ ...data, id: Date.now() });
+                    localStorage.setItem('seals', JSON.stringify(list));
+                    showToast(sealNo + ' 반납 처리 완료', 'success');
+                    loadData();
+                    updateSealOptions();
+                });
+        });
+    }
+
+    // ─── 삭제 ─────────────────────────────────────────
+    function deleteItem(id, createdTime, btnEl) {
+        showConfirm('삭제하시겠습니까?\n(구글 시트에서도 삭제됩니다.)', function() {
+            if (btnEl) { btnEl.disabled = true; btnEl.innerText = '삭제 중...'; }
+            fetch(scriptURL + '?action=deleteRecord&createdTime=' + encodeURIComponent(createdTime))
+                .then(res => res.json())
+                .then(data => {
+                    if (data.result === 'success') {
+                        let list = JSON.parse(localStorage.getItem('seals') || '[]');
+                        list = list.filter(i => i.id !== id);
+                        localStorage.setItem('seals', JSON.stringify(list));
+                        loadData();
+                        updateSealOptions();
+                        showToast('삭제되었습니다.', 'success');
+                    } else {
+                        if (btnEl) { btnEl.disabled = false; btnEl.innerText = '삭제'; }
+                        showToast('삭제 실패. 다시 시도해주세요.', 'error');
+                    }
+                })
+                .catch(() => {
+                    if (btnEl) { btnEl.disabled = false; btnEl.innerText = '삭제'; }
+                    showToast('연결 오류가 발생했습니다.', 'error');
+                });
+        });
+    }
+
+    // ─── CSV 내보내기 ─────────────────────────────────
+    function exportCSV() {
+        const list = JSON.parse(localStorage.getItem('seals') || '[]');
+        let csv = "﻿No,날짜,성함,구분,인감번호,사용목적,등록시간\n";
+        list.forEach((i, idx) => {
+            csv += `${list.length - idx},${i.date},${i.name},${i.type},${i.seal},"${i.purpose}",${i.createdTime || ''}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = '인감대장_백업.csv';
+        a.click();
+    }
+
+    // ─── 모달 ─────────────────────────────────────────
+    function showModal(id) {
+        document.getElementById(id).style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
+    }
+
+    function hideModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    function closeOverlay() {
+        closePwModal();
+        closeConfirm();
+    }
+
+    function setInitialPw() {
+        const pw = document.getElementById('newInitPw').value.trim();
+        if (pw.length < 4) { showToast('4자리 이상 입력해주세요.', 'error'); return; }
+        fetch(scriptURL + '?action=setPw&newPw=' + encodeURIComponent(pw))
+            .then(res => res.json())
+            .then(data => {
+                if (data.result === 'ok') {
+                    document.getElementById('newInitPw').value = '';
+                    hideModal('initPwModal');
+                    document.getElementById('overlay').style.display = 'none';
+                    showToast('관리자 암호가 설정되었습니다.', 'success');
+                } else {
+                    showToast('설정 실패. 다시 시도해주세요.', 'error');
+                }
+            })
+            .catch(() => showToast('연결 오류가 발생했습니다.', 'error'));
+    }
+
+    function openPwModal() {
+        showModal('pwChangeModal');
+    }
+
+    function closePwModal() {
+        hideModal('pwChangeModal');
+        hideModal('initPwModal');
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    function changePassword() {
+        const cur = document.getElementById('currentPw').value;
+        const nxt = document.getElementById('newPw').value;
+        if (nxt.length < 4) { showToast('새 암호는 4자리 이상이어야 합니다.', 'error'); return; }
+        fetch(scriptURL + '?action=setPw&oldPw=' + encodeURIComponent(cur) + '&newPw=' + encodeURIComponent(nxt))
+            .then(res => res.json())
+            .then(data => {
+                if (data.result === 'ok') {
+                    showToast('변경되었습니다. 다시 로그인하세요.', 'success');
+                    setTimeout(function() { location.reload(); }, 1500);
+                } else if (data.result === 'wrongPw') {
+                    showToast('현재 암호가 틀립니다.', 'error');
+                } else {
+                    showToast('변경 실패. 다시 시도해주세요.', 'error');
+                }
+            })
+            .catch(() => showToast('연결 오류가 발생했습니다.', 'error'));
+    }
+</script>
+</body>
+</html>
